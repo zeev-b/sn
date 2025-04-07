@@ -1,4 +1,6 @@
 #
+import logging
+import sys
 from http.client import responses
 
 import openai
@@ -26,7 +28,6 @@ class SnTextFileReader(BaseReader):
 def load_docs(filepath):
     """Load docs from a directory, excluding all other file types."""
     loader = SimpleDirectoryReader(
-        num_files_limit=100,
         input_dir=filepath,
         required_exts=[".txt"],
         file_extractor={".txt": SnTextFileReader()}
@@ -53,15 +54,18 @@ def get_index(docs_filepath, index_filepath):
 
 
 def query(query_text, debug_mode=False):
-    # Load the index from disk
-    index = get_index("./transcripts", "./index")
 
     # Initialize optional debugging tools
-    debug_handler = None
+    llama_debug_handler = None
     if debug_mode:
-        debug_handler = LlamaDebugHandler()
-        callback_manager = CallbackManager([debug_handler])
+        # logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+        # logging.getLogger().addHandler(logging.StreamHandler(stream=sys.stdout))
+        llama_debug_handler = LlamaDebugHandler(print_trace_on_end=True)
+        callback_manager = CallbackManager([llama_debug_handler])
         Settings.callback_manager = callback_manager
+
+    # Load the index from disk
+    index = get_index("./transcripts", "./index")
 
     # Create the query engine
     query_engine = index.as_query_engine()
@@ -69,13 +73,13 @@ def query(query_text, debug_mode=False):
     # Execute the query
     response = query_engine.query(query_text)
 
-    # If in debug mode, display the prompts sent to the LLM
-    if debug_mode and debug_handler:
-        print("\n--- LLM PROMPTS AND RESPONSES ---\n")
-        for input_event, output_event in debug_handler.get_llm_inputs_outputs():
-            print("INPUT EVENT PAYLOAD:\n", input_event.payload)
-            print("OUTPUT EVENT PAYLOAD:\n", output_event.payload)
-            print("\n" + "-" * 50 + "\n")
+    # # If in debug mode, display the prompts sent to the LLM
+    # if debug_mode and llama_debug_handler:
+    #     print("\n--- LLM PROMPTS AND RESPONSES ---\n")
+    #     for input_event, output_event in llama_debug_handler.get_llm_inputs_outputs():
+    #         print("INPUT EVENT PAYLOAD:\n", input_event.payload)
+    #         print("OUTPUT EVENT PAYLOAD:\n", output_event.payload)
+    #         print("\n" + "-" * 50 + "\n")
 
     return response
 
@@ -87,8 +91,14 @@ if __name__ == '__main__':
 
     # res = query("which science fiction books does Steve like, return a list of the names and a one sentence description of each book")
     # print(res)
-    res = query("which tv shows did Steve or Leo recommend, don't include podcasts only TV shows, return a list of the names and a one sentence description of each",
-                False)
+    # res = query("which TV shows or series did Steve or Leo recommend, look for mentions of episodes and also of streaming services like Amazon Prime, NetFlix, HBO etc., return a list of the names and a one sentence description of each",
+    #             True)
+    expanded_query = (
+        "Which TV shows, series, or streaming content (e.g., Netflix, Amazon Prime) "
+        "did Steve or Leo mention or recommend? Look for mentions of seasons, episodes or trailers"
+        "Avoid podcasts. "
+    )
+    res = query(expanded_query,True)
     # res = query("which Netflix shows, documentaries or series are recommended by Steve or Leo, don't include podcasts, return a list of the names and a one sentence description of each",
     #             False)
     print(res)
