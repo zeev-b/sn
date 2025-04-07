@@ -1,0 +1,11 @@
+# Ignore environment files and folders
+.env
+.venv/
+
+# Ignore IDE-specific folders
+.idea/
+
+# Ignore index and transcripts directories
+index/
+transcripts/
+debug/
