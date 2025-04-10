@@ -9,3 +9,5 @@
 index/
 transcripts/
 debug/
+
+__pycache__/

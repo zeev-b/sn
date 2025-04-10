@@ -1,17 +1,12 @@
-import logging
-import sys
-import openai
 import os
-import re
+import openai
 from dotenv import load_dotenv
-from llama_index.core import Settings, Document
-from llama_index.core.schema import TextNode
-from llama_index.core import VectorStoreIndex, StorageContext, load_index_from_storage
+from llama_index.core import Settings, Document, VectorStoreIndex, StorageContext, load_index_from_storage
 from llama_index.core.query_engine import RetrieverQueryEngine
-from llama_index.core.callbacks import CallbackManager, LlamaDebugHandler
 from llama_index.core.node_parser import SentenceSplitter
 from llama_index.core.readers.base import BaseReader
 from llama_index.core.retrievers import VectorIndexRetriever
+from llama_index.core.callbacks import CallbackManager, LlamaDebugHandler
 from llama_index.llms.openai import OpenAI
 
 
@@ -19,22 +14,13 @@ class SnTextFileReader(BaseReader):
     def __init__(self, chunk_size=1024, chunk_overlap=200):
         self.chunk_size = chunk_size
         self.chunk_overlap = chunk_overlap
-        self.parser = SentenceSplitter(
-            chunk_size=chunk_size,
-            chunk_overlap=chunk_overlap
-        )
+        self.parser = SentenceSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
 
     def load_data(self, file_path, extra_info=None):
         with open(file_path, "r", encoding="utf-8") as f:
             raw_text = f.read()
-
         cleaned_text = raw_text.replace("\r\n\r\n", " ").replace("\n\n", " ")
-
-        document = Document(
-            text=cleaned_text,
-            metadata=extra_info or {}
-        )
-
+        document = Document(text=cleaned_text, metadata=extra_info or {})
         return self.parser.get_nodes_from_documents([document])
 
 
@@ -60,28 +46,29 @@ def get_index(docs_filepath, index_filepath):
         index.storage_context.persist(persist_dir=index_filepath)
     return index
 
+def query_all_years(query_text, debug_mode=False):
+    return query_years(2015,2025, query_text, debug_mode)
 
-def query(query_text, debug_mode=False):
-    llama_debug_handler = None
+def query_years(start_year, end_year, query_text, debug_mode=False):
+    all_responses = []
+    for year in range(start_year, end_year+1):
+        response = query_year(query_text, year, debug_mode)
+        all_responses.append(str(response))
+
+    combined_prompt = "Combine the following answers into a single, coherent summary:\n\n" + "\n\n---\n\n".join(all_responses)
+    final_response = Settings.llm.complete(combined_prompt)
+
+    return final_response
+
+
+def query_year(query_text, year, debug_mode):
     if debug_mode:
         llama_debug_handler = LlamaDebugHandler(print_trace_on_end=True)
-        callback_manager = CallbackManager([llama_debug_handler])
-        Settings.callback_manager = callback_manager
-
-    index = get_index("./transcripts", "./index")
-
+        Settings.callback_manager = CallbackManager([llama_debug_handler])
+    index = get_index(f"./transcripts/{year}", f"./index/{year}")
     retriever = VectorIndexRetriever(index=index, similarity_top_k=32)
     query_engine = RetrieverQueryEngine(retriever=retriever)
-
     response = query_engine.query(query_text)
-
-    if debug_mode and llama_debug_handler:
-        print("\n--- LLM PROMPTS AND RESPONSES ---\n")
-        for input_event, output_event in llama_debug_handler.get_llm_inputs_outputs():
-            print("INPUT EVENT PAYLOAD:\n", input_event.payload)
-            print("OUTPUT EVENT PAYLOAD:\n", output_event.payload)
-            print("\n" + "-" * 50 + "\n")
-
     return response
 
 
@@ -91,11 +78,11 @@ if __name__ == '__main__':
 
     Settings.llm = OpenAI(model="gpt-4o-mini", temperature=0)
 
-    # res = query(
-    #     "what are the best practices for safe home networks.",
-    #     debug_mode=False
-    # )
-    # print(res)
+    res = query_all_years(
+        "what are the best practices for safe home networks.",
+        debug_mode=False
+    )
+    print(res)
 
     #500-1000
     # 1. **No Default Credentials**: Devices should not have manufacturer-set credentials. Upon first use, they should generate strong, unique credentials that the user can then change.
