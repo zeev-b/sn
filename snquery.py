@@ -46,18 +46,19 @@ def get_index(docs_filepath, index_filepath):
         index.storage_context.persist(persist_dir=index_filepath)
     return index
 
-def query_all_years(query_text, debug_mode=False):
-    return query_years(2015,2025, query_text, debug_mode)
+def query_all_years(query_text, show_intermediate=False, debug_mode=False):
+    return query_years(2015, 2025, query_text, show_intermediate=show_intermediate, debug_mode=debug_mode)
 
-def query_years(start_year, end_year, query_text, debug_mode=False):
+def query_years(start_year, end_year, query_text, show_intermediate=False, debug_mode=False):
     all_responses = []
     for year in range(start_year, end_year+1):
         response = query_year(query_text, year, debug_mode)
+        if show_intermediate:
+            print(f"\n--- {year} ---\n{response}\n")
         all_responses.append(str(response))
 
     combined_prompt = "Combine the following answers into a single, coherent summary:\n\n" + "\n\n---\n\n".join(all_responses)
     final_response = Settings.llm.complete(combined_prompt)
-
     return final_response
 
 
@@ -78,11 +79,11 @@ if __name__ == '__main__':
 
     Settings.llm = OpenAI(model="gpt-4o-mini", temperature=0)
 
-    res = query_all_years(
-        "what are the best practices for safe home networks.",
-        debug_mode=False
-    )
-    print(res)
+    # res = query_all_years(
+    #     "what are the best practices for safe home networks.",
+    #     debug_mode=False
+    # )
+    # print(res)
 
     #500-1000
     # 1. **No Default Credentials**: Devices should not have manufacturer-set credentials. Upon first use, they should generate strong, unique credentials that the user can then change.
@@ -127,9 +128,11 @@ if __name__ == '__main__':
     #     debug_mode=False
     # )
     # print(res)
-    res = query(
+    res = query_all_years(
         "Which TV shows or series did Steve or Leo recommend? Look for mentions of streaming services like Netflix, Amazon Prime, or HBO.",
+        show_intermediate=True,
         debug_mode=False
+
     )
     print(res)
     # 800-850
