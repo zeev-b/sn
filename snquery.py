@@ -58,7 +58,7 @@ def get_index(docs_filepath: str, index_filepath: str) -> VectorStoreIndex:
     return index
 
 def query_all_years(query_text: str, show_intermediate: bool = False, debug_mode: bool = False) -> CompletionResponse:
-    return query_years(2015, 2025, query_text, show_intermediate=show_intermediate, debug_mode=debug_mode)
+    return query_years(MIN_YEAR, MAX_YEAR, query_text, show_intermediate=show_intermediate, debug_mode=debug_mode)
 
 def query_years(start_year: int, end_year: int, query_text: str, show_intermediate: bool = False, debug_mode: bool = False,
                 transcripts_dir: str = TRANSCRIPTS_DIR, index_dir: str = INDEX_DIR) -> CompletionResponse:
