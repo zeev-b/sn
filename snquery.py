@@ -12,8 +12,13 @@ from llama_index.core.node_parser import SentenceSplitter
 from llama_index.core.readers.base import BaseReader
 from llama_index.core.retrievers import VectorIndexRetriever
 from llama_index.core.callbacks import CallbackManager, LlamaDebugHandler
-from llama_index.core.schema import TextNode
+from llama_index.core.schema import TextNode, BaseNode
 from llama_index.llms.openai import OpenAI
+
+TRANSCRIPTS_DIR = "./transcripts"
+INDEX_DIR = "./index"
+MIN_YEAR = 2015
+MAX_YEAR = 2025
 
 
 class SnTextFileReader(BaseReader):
@@ -22,7 +27,7 @@ class SnTextFileReader(BaseReader):
         self.chunk_overlap = chunk_overlap
         self.parser = SentenceSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
 
-    def load_data(self, file_path: str, extra_info: Optional[Dict] = None) -> List[TextNode]:
+    def load_data(self, file_path: str, extra_info: Optional[Dict] = None) -> List[BaseNode]:
         with open(file_path, "r", encoding="utf-8") as f:
             raw_text = f.read()
         cleaned_text = raw_text.replace("\r\n\r\n", " ").replace("\n\n", " ")
@@ -55,10 +60,11 @@ def get_index(docs_filepath: str, index_filepath: str) -> VectorStoreIndex:
 def query_all_years(query_text: str, show_intermediate: bool = False, debug_mode: bool = False) -> CompletionResponse:
     return query_years(2015, 2025, query_text, show_intermediate=show_intermediate, debug_mode=debug_mode)
 
-def query_years(start_year: int, end_year: int, query_text: str, show_intermediate: bool = False, debug_mode: bool = False) -> CompletionResponse:
+def query_years(start_year: int, end_year: int, query_text: str, show_intermediate: bool = False, debug_mode: bool = False,
+                transcripts_dir: str = TRANSCRIPTS_DIR, index_dir: str = INDEX_DIR) -> CompletionResponse:
     all_responses = []
     for year in range(start_year, end_year+1):
-        response = query_year(query_text, year, debug_mode)
+        response = query_year(query_text, year, debug_mode, transcripts_dir, index_dir)
         response_with_year = f"\n--- {year} ---\n{response}\n"
         all_responses.append(response_with_year)
         if show_intermediate:
@@ -67,7 +73,7 @@ def query_years(start_year: int, end_year: int, query_text: str, show_intermedia
     if len(all_responses) > 1:
         # combined_prompt = "Combine the following answers into a single, coherent summary:\n\n" + "\n\n---\n\n".join(all_responses)
         combined_prompt = (f"The original query per year was: '{query_text}'\n. Following are the responses we got from querying" +
-                          "the transcripts per year. Combine the answers we got from all years into a single coherent answer.\n\n" +
+                          "the transcripts per year. Combine the answers we got from all years into a single coherent answer:\n\n" +
                            "\n".join(all_responses))
         final_response = Settings.llm.complete(combined_prompt)
     else:
@@ -75,28 +81,30 @@ def query_years(start_year: int, end_year: int, query_text: str, show_intermedia
     return final_response
 
 
-def query_year(query_text: str, year: int, debug_mode: bool) -> RESPONSE_TYPE:
+def query_year(query_text: str, year: int, debug_mode: bool, transcripts_dir: str, index_dir: str) -> RESPONSE_TYPE:
     if debug_mode:
         llama_debug_handler = LlamaDebugHandler(print_trace_on_end=True)
         Settings.callback_manager = CallbackManager([llama_debug_handler])
-    index = get_index(f"./transcripts/{year}", f"./index/{year}")
+    index = get_index(f"{transcripts_dir}/{year}", f"{index_dir}/{year}")
     retriever = VectorIndexRetriever(index=index, similarity_top_k=32)
     query_engine = RetrieverQueryEngine(retriever=retriever)
     response = query_engine.query(query_text)
     return response
 
 
-if __name__ == '__main__':
+def main():
     parser = argparse.ArgumentParser(description="Query podcast transcripts by year range and summarize results.")
     parser.add_argument("-sy", "--start-year", type=int, required=True, help="Start year for querying transcripts")
     parser.add_argument("-ey", "--end-year", type=int, required=True, help="End year for querying transcripts")
     parser.add_argument("-q", "--query", type=str, required=True, help="Query to execute")
-    parser.add_argument("-i", "--show-intermediate", action="store_true", default=True, help="Show intermediate yearly results")
+    parser.add_argument("--hide-intermediate", action="store_true", default=False, help="Hide intermediate yearly results")
+    parser.add_argument("--transcripts-dir", type=str, default=TRANSCRIPTS_DIR, help="Directory containing transcript files")
+    parser.add_argument("--index-dir", type=str, default=INDEX_DIR, help="Directory containing index files")
     parser.add_argument("-d", "--debug", action="store_true", default=False, help="Show debug information")
     args = parser.parse_args()
 
-    if args.start_year < 2015 or args.end_year > 2025:
-        print("Start year must be >= 2015 and end year must be <= 2025.")
+    if args.start_year < MIN_YEAR or args.end_year > MAX_YEAR:
+        print(f"Start year must be >= {MIN_YEAR} and end year must be <= {MAX_YEAR}.")
         exit(1)
     if args.start_year > args.end_year:
         print("Start year must be <= end year.")
@@ -106,7 +114,11 @@ if __name__ == '__main__':
         exit(1)
 
     load_dotenv()
-    openai.api_key = os.environ["OPENAI_API_KEY"]
+    api_key = os.environ.get("OPENAI_API_KEY")
+    if not api_key:
+        print("Error: The environment variable OPENAI_API_KEY is missing. Please set it in your .env file.")
+        exit(1)
+    openai.api_key = api_key
     Settings.llm = OpenAI(model="gpt-4o-mini", temperature=0)
 
 
@@ -115,16 +127,16 @@ if __name__ == '__main__':
         end_year=args.end_year,
         query_text=args.query,
         debug_mode=args.debug,
-        show_intermediate=args.show_intermediate
+        show_intermediate=not args.hide_intermediate,
+        transcripts_dir=args.transcripts_dir,
+        index_dir=args.index_dir
     )
     print("\n\n=== Summary result ===")
     print(result)
 
-    # res = query_all_years(
-    #     "what are the best practices for safe home networks.",
-    #     debug_mode=False
-    # )
-    # print(res)
+
+if __name__ == '__main__':
+    main()
 
     #500-1000
     # 1. **No Default Credentials**: Devices should not have manufacturer-set credentials. Upon first use, they should generate strong, unique credentials that the user can then change.

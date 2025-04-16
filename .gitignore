@@ -11,3 +11,4 @@ transcripts/
 debug/
 
 __pycache__/
+.aider*
