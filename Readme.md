@@ -40,11 +40,17 @@ DATE:		May 26, 2015
 This will be used to auto-sort transcripts into per-year directories.
 
 ### 3. Sort Transcripts by Year
-Use the included `sortfiles.py` script to organize `.txt` files into year folders based on the date in each file:
+Use the included `sortfiles.py` script to organize `.txt` transcript files into year folders based on the date contained in each file. The script will only process files with a `.txt` extension and organize them into folders for each year between `2015` and `2025`.
+
+By default, the script looks for transcripts in the `./transcripts` directory. If your transcripts are located elsewhere, you can specify the target directory using the `--transcripts-dir` parameter. For example:
+```bash
+python sortfiles.py --transcripts-dir /path/to/your/transcripts
+```
+If no directory is specified, running:
 ```bash
 python sortfiles.py
 ```
-This will move files into `./transcripts/2015`, `./transcripts/2016`, ..., `./transcripts/2025` automatically.
+will default to organizing the files in `./transcripts`. After running the command, transcript files will be moved into subdirectories such as `./transcripts/2015`, `./transcripts/2016`, etc.
 
 ### 4. Set Up API Key
 Create a `.env` file:
