@@ -58,17 +58,19 @@ python snquery.py \
   -sy 2016 \
   -ey 2018 \
   -q "What did Steve say about VPNs?" \
-  -i  # Optional: Show per-year results
+  --hide-intermediate  # Optional: Hide intermediate year responses
 ```
 
 ### Flags
-| Flag           | Long Form             | Description                               |
-|----------------|------------------------|-------------------------------------------|
-| `-sy`          | `--start-year`         | Starting year for querying (>= 2015)       |
-| `-ey`          | `--end-year`           | Ending year for querying (<= 2025)         |
-| `-q`           | `--query`              | Your natural language query                |
-| `-i`           | `--show-intermediate`  | Show intermediate year responses (default) |
-| `-d`           | `--debug`              | Print LLM internal debug prompts           |
+| Flag           | Long Form             | Description                                                             |
+|----------------|------------------------|-------------------------------------------------------------------------|
+| `-sy`          | `--start-year`         | Starting year for querying transcripts (>= 2015)                        |
+| `-ey`          | `--end-year`           | Ending year for querying transcripts (<= 2025)                          |
+| `-q`           | `--query`              | Your natural language query                                             |
+|                | `--hide-intermediate`  | Hide intermediate year responses (default behavior shows intermediate)  |
+|                | `--transcripts-dir`    | Directory containing transcript files (default: ./transcripts)          |
+|                | `--index-dir`          | Directory containing index files (default: ./index)                     |
+| `-d`           | `--debug`              | Print LLM internal debug prompts                                        |
 
 ---
 
