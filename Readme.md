@@ -7,10 +7,10 @@ This Python program allows you to build a retrieval-augmented generation (RAG) p
 ## Features
 
 - Loads and parses text transcripts with chunked context windows
-- Creates per-year vector indexes (2015 to 2025)
+- Creates per-year vector indexes
 - Runs queries across a year range
 - Optionally prints intermediate results
-- Final summary synthesized by OpenAI's GPT-4o-mini
+- Final summary synthesized by another call to the LLM
 
 ---
 
