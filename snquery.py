@@ -35,7 +35,7 @@ class SnTextFileReader(BaseReader):
         return self.parser.get_nodes_from_documents([document])
 
 
-def load_docs(directory) -> List[TextNode]:
+def load_docs(directory: str) -> List[BaseNode]:
     nodes = []
     for fname in os.listdir(directory):
         if fname.endswith(".txt"):
@@ -138,95 +138,3 @@ def main():
 if __name__ == '__main__':
     main()
 
-    #500-1000
-    # 1. **No Default Credentials**: Devices should not have manufacturer-set credentials. Upon first use, they should generate strong, unique credentials that the user can then change.
-    #
-    # 2. **Physical Access Required for Changes**: Any significant security changes, such as enabling remote access or changing admin settings, should require a physical button press to confirm the action. This helps prevent unauthorized remote changes.
-    #
-    # 3. **Minimal Public Exposure**: Only the essential functions of a device should be exposed to the internet by default. Additional services should require explicit manual enabling, accompanied by clear warnings.
-    #
-    # 4. **Automatic Firmware Updates**: Devices should come with auto-update features enabled by default, ensuring they regularly check for and apply firmware updates to maintain security.
-    #
-    # 5. **Ongoing Firmware Maintenance**: Manufacturers should commit to providing firmware updates for as long as the device is in service, addressing vulnerabilities and ensuring continued security.
-    #
-    # Implementing these practices can significantly enhance the security of home networks.
-
-    #800-850
-    # To ensure a safe home network, consider implementing the following best practices:
-    #
-    # 1. **Use Strong Passwords**: Ensure that all devices, including routers and IoT devices, have unique and complex passwords. Avoid using default passwords.
-    #
-    # 2. **Enable Firewall Protection**: Utilize firewall software or hardware to monitor and control incoming and outgoing network traffic. Ensure that it is properly configured and active.
-    #
-    # 3. **Keep Software Updated**: Regularly update all devices, including computers, smartphones, and IoT devices, to patch vulnerabilities and improve security.
-    #
-    # 4. **Implement Network Segmentation**: Place IoT devices on a separate network from your main devices to limit potential exposure and reduce risk.
-    #
-    # 5. **Use Two-Factor Authentication**: Enable two-factor authentication on accounts and devices whenever possible to add an extra layer of security.
-    #
-    # 6. **Disable Unused Services**: Turn off any services or features on your router and devices that you do not use, such as remote access or UPnP, to minimize potential attack vectors.
-    #
-    # 7. **Monitor Network Traffic**: Regularly check for unusual activity on your network, which could indicate unauthorized access or malware.
-    #
-    # 8. **Use a Virtual Private Network (VPN)**: Consider using a VPN for added privacy and security, especially when accessing your home network remotely.
-    #
-    # 9. **Educate Household Members**: Ensure that everyone in the household understands basic security practices, such as recognizing phishing attempts and the importance of not sharing passwords.
-    #
-    # 10. **Limit Remote Access**: Restrict remote access to your network and devices, and only allow it when absolutely necessary, using secure methods.
-    #
-    # By following these practices, you can significantly enhance the security of your home network.
-
-    # res = query(
-    #     "what topics did Leo and Steve discuss.",
-    #     debug_mode=False
-    # )
-    # print(res)
-    # res = query_all_years(
-    #     "Which TV shows or series did Steve or Leo recommend? Look for mentions of streaming services like Netflix, Amazon Prime, or HBO.",
-    #     show_intermediate=True,
-    #     debug_mode=False
-    #
-    # )
-    # print(res)
-
-    # res = query_all_years(
-    #     "Which tools and utilities are recommended, If possible, include the site from which to download each one",
-    #     show_intermediate=True,
-    #     debug_mode=False
-    #
-    # )
-    # print(res)
-
-    # res = query_years(2020, 2023,
-    #     "Was Israel mentioned in the podcast and in what context?",
-    #     show_intermediate=True,
-    #     debug_mode=False
-    # )
-    # print(res)
-
-    # 800-850
-    # "Which TV shows or series did Steve or Leo recommend? Look for mentions of streaming services like Netflix, Amazon Prime, or HBO."
-    #
-    # Steve and Leo recommended the following TV shows and series:
-    #
-    # 1. **The Expanse** - Available on Amazon Prime, praised for its realistic visuals and complex plot.
-    # 2. **Wheel of Time** - Also on Amazon Prime, noted for its adaptation from the beloved book series.
-    # 3. **Foundation** - Mentioned in the context of watching and discussing its episodes.
-    # 4. **In the Shadow of the Moon** - Recommended by Steve, though Leo has not watched it yet.
-    # 5. **The Tomorrow War** - A movie available on Amazon Prime, which they both enjoyed for its action and special effects.
-    #
-    # These recommendations highlight their appreciation for science fiction and engaging storytelling.
-    # ----
-    # 500-1000
-    # Steve and Leo recommended several TV shows and series, including:
-    #
-    # 1. **Devs** - A miniseries produced by FX and streaming on Hulu.
-    # 2. **The Dropout** - A show that Steve just started watching.
-    # 3. **WeCrashed** - Recommended by Leo as a companion to "The Dropout," available on Apple TV.
-    # 4. **Ozark** - Mentioned by Steve as a series they finished watching.
-    # 5. **Better Call Saul** - Discussed by Leo, who was watching the final episodes.
-    # 6. **Fargo** - Steve praised the second season, which he found to be even better than the first.
-    # 7. **Billions** - A series starring Damian Lewis and Paul Giamatti, available on demand.
-    # 8. **Homeland** - Steve encouraged viewers to watch this series, which he recently finished.
-    #
-    # Additionally, they discussed various streaming services like Hulu, Amazon Prime, and HBO Max in relation to these shows.
