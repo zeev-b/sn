@@ -80,5 +80,5 @@ python snquery.py \
 ---
 
 ## License
-MIT
+GNU Affero General Public License v3.0
 
