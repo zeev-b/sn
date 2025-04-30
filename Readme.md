@@ -1,16 +1,17 @@
 # Security Now Transcript Query Engine
 
-This Python program allows you to build a retrieval-augmented generation (RAG) pipeline over Steve Gibson's Security Now podcast transcripts. You can query a range of years and get a coherent, LLM-generated answer based on indexed podcast content.
+This Python program allows you to build a retrieval-augmented generation (RAG) pipeline over Steve Gibson's Security Now podcast transcripts. 
+You can query a range of years and get a coherent, LLM-generated answer based on indexed podcast content.
 
 ---
 
-## Features
+## How it works
 
 - Loads and parses text transcripts with chunked context windows
-- Creates per-year vector indexes
-- Runs queries across a year range
-- Optionally prints intermediate results
-- Final summary synthesized by another call to the LLM
+- Creates a per-year vector index
+- Runs the query on each year
+- Optionally prints intermediate results (per year result)
+- Final summary synthesized by another call to the model
 
 ---
 
