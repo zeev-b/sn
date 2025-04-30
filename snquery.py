@@ -61,7 +61,7 @@ def query_all_years(query_text: str, show_intermediate: bool = False, debug_mode
     return query_years(MIN_YEAR, MAX_YEAR, query_text, show_intermediate=show_intermediate, debug_mode=debug_mode)
 
 def query_years(start_year: int, end_year: int, query_text: str, show_intermediate: bool = False, debug_mode: bool = False,
-                transcripts_dir: str = TRANSCRIPTS_DIR, index_dir: str = INDEX_DIR) -> CompletionResponse:
+                transcripts_dir: str = TRANSCRIPTS_DIR, index_dir: str = INDEX_DIR, summary_prompt: str = None) -> CompletionResponse:
     all_responses = []
     for year in range(start_year, end_year+1):
         response = query_year(query_text, year, debug_mode, transcripts_dir, index_dir)
@@ -71,10 +71,11 @@ def query_years(start_year: int, end_year: int, query_text: str, show_intermedia
             print(response_with_year)
 
     if len(all_responses) > 1:
-        # combined_prompt = "Combine the following answers into a single, coherent summary:\n\n" + "\n\n---\n\n".join(all_responses)
-        combined_prompt = (f"The original query per year was: '{query_text}'\n. Following are the responses we got from querying" +
-                          "the transcripts per year. Combine the answers we got from all years into a single coherent answer:\n\n" +
-                           "\n".join(all_responses))
+        if summary_prompt is None:
+            summary_prompt = ("The original query per year was: '{query_text}'\n. "
+                              "Following are the responses we got from querying the transcripts per year. "
+                              "Combine the answers we got from all years into a single coherent answer:\n\n{responses}")
+        combined_prompt = summary_prompt.format(query_text=query_text, responses="\n".join(all_responses))
         final_response = Settings.llm.complete(combined_prompt)
     else:
         final_response = all_responses[0]
@@ -101,6 +102,7 @@ def main():
     parser.add_argument("--transcripts-dir", type=str, default=TRANSCRIPTS_DIR, help="Directory containing transcript files")
     parser.add_argument("--index-dir", type=str, default=INDEX_DIR, help="Directory containing index files")
     parser.add_argument("-d", "--debug", action="store_true", default=False, help="Show debug information")
+    parser.add_argument("--summary-prompt", type=str, default="The original query per year was: '{query_text}'\n. Following are the responses we got from querying the transcripts per year. Combine the answers we got from all years into a single coherent answer:\n\n{responses}", help="Custom summary prompt template. Use '{query_text}' and '{responses}' as placeholders.")
     args = parser.parse_args()
 
     if args.start_year < MIN_YEAR or args.end_year > MAX_YEAR:
@@ -129,7 +131,8 @@ def main():
         debug_mode=args.debug,
         show_intermediate=not args.hide_intermediate,
         transcripts_dir=args.transcripts_dir,
-        index_dir=args.index_dir
+        index_dir=args.index_dir,
+        summary_prompt=args.summary_prompt
     )
     print("\n\n=== Summary result ===")
     print(result)
