@@ -19,6 +19,9 @@ TRANSCRIPTS_DIR = "./transcripts"
 INDEX_DIR = "./index"
 MIN_YEAR = 2015
 MAX_YEAR = 2025
+SUMMARY_PROMPT = "The original query per year was: '{query_text}'\n. " \
+                 "Following are the responses we got from querying the transcripts per year. " \
+                 "Combine the answers we got from all years into a single coherent answer:\n\n{responses}"
 
 
 class SnTextFileReader(BaseReader):
@@ -71,10 +74,6 @@ def query_years(start_year: int, end_year: int, query_text: str, show_intermedia
             print(response_with_year)
 
     if len(all_responses) > 1:
-        if summary_prompt is None:
-            summary_prompt = ("The original query per year was: '{query_text}'\n. "
-                              "Following are the responses we got from querying the transcripts per year. "
-                              "Combine the answers we got from all years into a single coherent answer:\n\n{responses}")
         combined_prompt = summary_prompt.format(query_text=query_text, responses="\n".join(all_responses))
         final_response = Settings.llm.complete(combined_prompt)
     else:
@@ -102,7 +101,7 @@ def main():
     parser.add_argument("--transcripts-dir", type=str, default=TRANSCRIPTS_DIR, help="Directory containing transcript files")
     parser.add_argument("--index-dir", type=str, default=INDEX_DIR, help="Directory containing index files")
     parser.add_argument("-d", "--debug", action="store_true", default=False, help="Show debug information")
-    parser.add_argument("--summary-prompt", type=str, default="The original query per year was: '{query_text}'\n. Following are the responses we got from querying the transcripts per year. Combine the answers we got from all years into a single coherent answer:\n\n{responses}", help="Custom summary prompt template. Use '{query_text}' and '{responses}' as placeholders.")
+    parser.add_argument("--summary-prompt", type=str, default=SUMMARY_PROMPT, help="Custom summary prompt template. Use '{query_text}' and '{responses}' as placeholders.")
     args = parser.parse_args()
 
     if args.start_year < MIN_YEAR or args.end_year > MAX_YEAR:
@@ -113,6 +112,9 @@ def main():
         exit(1)
     if not args.query.strip():
         print("Query must not be empty.")
+        exit(1)
+    if not args.summary_prompt.strip():
+        print("Summary prompt must not be empty.")
         exit(1)
 
     load_dotenv()
