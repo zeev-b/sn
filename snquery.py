@@ -42,7 +42,6 @@ class SnTextFileReader(BaseReader):
         document = Document(text=cleaned_text, metadata=extra_info or {})
         return self.parser.get_nodes_from_documents([document])
 
-
 def load_docs(directory: str) -> List[BaseNode]:
     nodes = []
     for fname in os.listdir(directory):
@@ -120,8 +119,7 @@ def query_year(query_text: str, year: int, debug_mode: bool, transcripts_dir: st
         llama_debug_handler = LlamaDebugHandler(print_trace_on_end=True)
         Settings.callback_manager = CallbackManager([llama_debug_handler])
     index = get_index(f"{transcripts_dir}/{year}", f"{index_dir}/{year}", debug_mode)
-    # retriever = VectorIndexRetriever(index=index, similarity_top_k=32)
-    retriever = VectorIndexRetriever(index=index, similarity_top_k=32)
+    retriever = VectorIndexRetriever(index=index, similarity_top_k=getattr(Settings, "similarity_top_k", 32))
     #from llama_index.core.response_synthesizers import get_response_synthesizer
     #from llama_index.core.response_synthesizers import ResponseMode
     query_engine = RetrieverQueryEngine(retriever=retriever) #, response_synthesizer=get_response_synthesizer(response_mode=ResponseMode.REFINE))
@@ -143,12 +141,13 @@ def set_llm(provider: str):
         except ImportError:
             raise ImportError("The 'openai' LLM provider requires installing llama-index-llms-openai. Please install it with pip.")
         Settings.llm = OpenAI(model="gpt-4o-mini", temperature=0)
+        Settings.similarity_top_k_ = 32
 
     def together_handler():
         try:
             from llama_index.llms.together import TogetherLLM
             from llama_index.embeddings.fireworks import FireworksEmbedding
-            # Together.ai's embedding model is commented out since  I gave up on Together.ai's embedding models,
+            # Together.ai's embedding model is commented out since I gave up on them,
             # they were very slow and yielded bad results.
             # from llama_index.embeddings.together import TogetherEmbedding
             # Settings.embed_model = TogetherEmbedding(model_name="togethercomputer/m2-bert-80M-2k-retrieval")
@@ -165,6 +164,7 @@ def set_llm(provider: str):
         # Llama-3 models yielded bad results so I switched to Mixtral
         Settings.llm = TogetherLLM(model="mistralai/Mixtral-8x7B-Instruct-v0.1", api_key=os.environ["TOGETHER_API_KEY"],
                                    temperature=0, is_chat_model=False, completion_to_prompt=completion_to_prompt)
+        Settings.similarity_top_k = 16
 
     def fireworks_handler():
         try:
@@ -178,6 +178,7 @@ def set_llm(provider: str):
         # Settings.llm = Fireworks(model="accounts/fireworks/models/llama-v3p1-8b-instruct", api_key=os.environ["FIREWORKS_API_KEY"],
         #                          temperature=0, max_tokens=4096)
         Settings.llm = Fireworks(model="accounts/fireworks/models/mixtral-8x22b-instruct", api_key=os.environ["FIREWORKS_API_KEY"], temperature=0)
+        Settings.similarity_top_k = 32
 
     switch_dict = {
         "openai": openai_handler,
