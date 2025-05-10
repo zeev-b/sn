@@ -162,8 +162,11 @@ def set_llm(provider: str):
             raise ImportError("The 'together' LLM provider requires installing llama-index-llms-together and "
                               "lllama-index-embeddings-fireworks. Please install it with pip.")
         # Llama-3 models yielded bad results so I switched to Mixtral
-        Settings.llm = TogetherLLM(model="mistralai/Mixtral-8x7B-Instruct-v0.1", api_key=os.environ["TOGETHER_API_KEY"],
-                                   temperature=0, is_chat_model=False, completion_to_prompt=completion_to_prompt)
+        Settings.llm = TogetherLLM(model="mistralai/Mixtral-8x7B-Instruct-v0.1",
+                                   api_key=os.environ["TOGETHER_API_KEY"],
+                                   temperature=0,
+                                   is_chat_model=False,
+                                   completion_to_prompt=completion_to_prompt)
         Settings.similarity_top_k = 16
 
     def fireworks_handler():
@@ -177,7 +180,10 @@ def set_llm(provider: str):
         # had to enlarge the max_tokens since the final output got truncated
         # Settings.llm = Fireworks(model="accounts/fireworks/models/llama-v3p1-8b-instruct", api_key=os.environ["FIREWORKS_API_KEY"],
         #                          temperature=0, max_tokens=4096)
-        Settings.llm = Fireworks(model="accounts/fireworks/models/mixtral-8x22b-instruct", api_key=os.environ["FIREWORKS_API_KEY"], temperature=0)
+        Settings.llm = Fireworks(model="accounts/fireworks/models/mixtral-8x22b-instruct",
+                                 api_key=os.environ["FIREWORKS_API_KEY"],
+                                 temperature=0,
+                                 max_tokens=4096)
         Settings.similarity_top_k = 32
 
     switch_dict = {
