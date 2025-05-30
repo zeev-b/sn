@@ -61,7 +61,7 @@ OPENAI_API_KEY=your_openai_api_key_here
 
 ### 5. Run the Program
 ```bash
-python snquery.py \
+python sn_cli.py \
   -sy 2016 \
   -ey 2018 \
   -q "What did Steve say about VPNs?" \

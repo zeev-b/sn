@@ -1,6 +1,6 @@
 
 ```bash
-time python snquery.py -sy 2015 -ey 2025 -q "What sci-fi books are recommended by both Steve and Leo?"
+time python sn_cli.py -sy 2015 -ey 2025 -q "What sci-fi books are recommended by both Steve and Leo?"
 ```
 
 ---
