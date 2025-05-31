@@ -84,8 +84,10 @@ class SnRAGEngine:
 
     def get_index(self, docs_path: str, index_path: str) -> VectorStoreIndex:
         """Load or create a vector index for a given path."""
-        embed_info_path = os.path.join(index_path, EMBED_MODEL_FILE)
         embed_model_id = self.get_model_id()
+        model_subdir = embed_model_id.replace(":", "_").replace("/", "-")
+        full_index_path = os.path.join(index_path, model_subdir)
+        embed_info_path = os.path.join(full_index_path, EMBED_MODEL_FILE)
         try:
             if os.path.exists(embed_info_path):
                 with open(embed_info_path, "r") as f:
@@ -94,14 +96,14 @@ class SnRAGEngine:
                     raise ValueError(f"Embedding model mismatch: expected '{embed_model_id}', found '{stored_model_id}'")
             if self.debug_mode:
                 start_time = time.time()
-            index = load_index_from_storage(StorageContext.from_defaults(persist_dir=index_path))
+            index = load_index_from_storage(StorageContext.from_defaults(persist_dir=full_index_path))
             if self.debug_mode:
                 elapsed = time.time() - start_time
                 print(f"✅ Index loaded in {elapsed:.2f} seconds")
         except Exception:
             nodes = self.load_docs(docs_path)
             index = VectorStoreIndex(nodes)
-            index.storage_context.persist(persist_dir=index_path)
+            index.storage_context.persist(persist_dir=full_index_path)
             with open(embed_info_path, "w") as f:
                 f.write(embed_model_id)
         return index
