@@ -51,12 +51,25 @@ class SnRAGEngine:
         self.summary_prompt = summary_prompt or SUMMARY_PROMPT
         self.debug_mode = debug_mode
 
+    def get_transcripts_path(self, year: int) -> str:
+        """ Returns the transcript path for the given year """
+        return os.path.join(self.transcripts_dir, str(year))
+
+    def get_index_path(self, year: int) -> str:
+        """ Returns the index path for the given year
+        The path will include the embedding used,
+        for example: index/FireworksEmbedding_nomic-ai-nomic-embed-text-v1.5/2015
+        """
+        embed_model_id = self.get_model_id()
+        model_name_for_path = embed_model_id.replace(":", "_").replace("/", "-")
+        return os.path.join(self.index_dir, model_name_for_path, str(year))
+
     def query_year(self, query_text: str, year: int) -> str:
         """Query a single year's index."""
         if self.debug_mode:
             llama_debug_handler = LlamaDebugHandler(print_trace_on_end=True)
             Settings.callback_manager = CallbackManager([llama_debug_handler])
-        index = self.get_index(f"{self.transcripts_dir}/{year}", f"{self.index_dir}/{year}")
+        index = self.get_index(self.get_transcripts_path(year), self.get_index_path(year))
         retriever = VectorIndexRetriever(index=index, similarity_top_k=getattr(Settings, "similarity_top_k", 32))
         # from llama_index.core.response_synthesizers import get_response_synthesizer
         # from llama_index.core.response_synthesizers import ResponseMode
@@ -85,9 +98,7 @@ class SnRAGEngine:
     def get_index(self, docs_path: str, index_path: str) -> VectorStoreIndex:
         """Load or create a vector index for a given path."""
         embed_model_id = self.get_model_id()
-        model_subdir = embed_model_id.replace(":", "_").replace("/", "-")
-        full_index_path = os.path.join(index_path, model_subdir)
-        embed_info_path = os.path.join(full_index_path, EMBED_MODEL_FILE)
+        embed_info_path = os.path.join(index_path, EMBED_MODEL_FILE)
         try:
             if os.path.exists(embed_info_path):
                 with open(embed_info_path, "r") as f:
@@ -96,14 +107,14 @@ class SnRAGEngine:
                     raise ValueError(f"Embedding model mismatch: expected '{embed_model_id}', found '{stored_model_id}'")
             if self.debug_mode:
                 start_time = time.time()
-            index = load_index_from_storage(StorageContext.from_defaults(persist_dir=full_index_path))
+            index = load_index_from_storage(StorageContext.from_defaults(persist_dir=index_path))
             if self.debug_mode:
                 elapsed = time.time() - start_time
                 print(f"✅ Index loaded in {elapsed:.2f} seconds")
         except Exception:
             nodes = self.load_docs(docs_path)
             index = VectorStoreIndex(nodes)
-            index.storage_context.persist(persist_dir=full_index_path)
+            index.storage_context.persist(persist_dir=index_path)
             with open(embed_info_path, "w") as f:
                 f.write(embed_model_id)
         return index
@@ -128,14 +139,14 @@ class SnRAGEngine:
         return f"{model_class}:{model_config}"
 
     @staticmethod
-    def set_llm(provider: str) -> None:
+    def set_llm(provider: str, api_key: Optional[str] = None) -> None:
         """Set the global LLM and embedding model used by llama-index."""
         def openai_handler():
             # The 'openai' LLM provider requires installing llama-index-llms-openai.
             from llama_index.llms.openai import OpenAI
             from llama_index.embeddings.openai import OpenAIEmbedding
-            Settings.embed_model = OpenAIEmbedding(model="text-embedding-3-small")
-            Settings.llm = OpenAI(model="gpt-4o-mini", temperature=0)
+            Settings.embed_model = OpenAIEmbedding(model="text-embedding-3-small", api_key=api_key or os.environ["OPENAI_API_KEY"])
+            Settings.llm = OpenAI(model="gpt-4o-mini", temperature=0, api_key=api_key or os.environ["OPENAI_API_KEY"])
             Settings.similarity_top_k = 32
 
         def together_handler():
@@ -157,7 +168,7 @@ class SnRAGEngine:
             Settings.embed_model = FireworksEmbedding(model_name="nomic-ai/nomic-embed-text-v1.5")
             Settings.llm = TogetherLLM(
                 model="mistralai/Mixtral-8x7B-Instruct-v0.1",
-                api_key=os.environ["TOGETHER_API_KEY"],
+                api_key=api_key or os.environ["TOGETHER_API_KEY"],
                 temperature=0,
                 is_chat_model=False,
                 completion_to_prompt=completion_to_prompt
@@ -175,7 +186,7 @@ class SnRAGEngine:
 
             Settings.llm = Fireworks(
                 model="accounts/fireworks/models/mixtral-8x22b-instruct",
-                api_key=os.environ["FIREWORKS_API_KEY"],
+                api_key=api_key or os.environ["FIREWORKS_API_KEY"],
                 temperature=0,
                 max_tokens=4096
             )
