@@ -11,7 +11,7 @@ API_ENV_KEY_NAMES = {"OpenAI": "OPENAI_API_KEY", "together.ai": "TOGETHER_API_KE
 PROVIDERS = {"OpenAI": "openai", "together.ai": "together", "Fireworks AI": "fireworks"}
 
 # Load environment variables
-load_dotenv()
+#load_dotenv()
 
 class StreamlitLogger:
     @staticmethod

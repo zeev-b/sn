@@ -12,3 +12,4 @@ debug/
 
 __pycache__/
 .aider*
+.streamlit/
