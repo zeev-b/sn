@@ -5,8 +5,7 @@
 # Ignore IDE-specific folders
 .idea/
 
-# Ignore index and transcripts directories
-index/
+# Ignore transcripts directory
 transcripts/
 debug/
 
