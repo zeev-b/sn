@@ -1,4 +1,8 @@
+python-dotenv
+openai
 llama-index
 llama-index-llms-openai
-openai
-python-dotenv
+llama_index-llms-together
+llama_index-embeddings-fireworks
+llama_index-llms-fireworks
+
