@@ -56,7 +56,6 @@ def validate_together_key(api_key: str) -> bool:
     }
     try:
         response = requests.post(url, headers=headers, json=data, timeout=10)
-        st.info(response.content)
         if response.status_code == 200 and "error" not in response.json():
             return True
         return False
