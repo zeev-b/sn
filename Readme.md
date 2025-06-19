@@ -51,7 +51,7 @@ If no directory is specified, running:
 ```bash
 python sortfiles.py
 ```
-will default to organizing the files in `./transcripts`. After running the command, transcript files will be moved into subdirectories such as `./transcripts/2015`, `./transcripts/2016`, etc.
+will default to organizing the files in the `./transcripts` directory. After running the command, the transcript files will be moved into subdirectories, such as `./transcripts/2015`, `./transcripts/2016`, and so on.
 
 ### 4. Set Up API Key
 Create a `.env` file:
@@ -82,7 +82,7 @@ python sn_cli.py \
 ---
 
 ## Notes
-- Make sure transcripts are organized into folders like `./transcripts/2015`, `./transcripts/2016`, etc.
+- Ensure transcripts are organized into folders, such as `./transcripts/2015`, `./transcripts/2016`, etc.
 - The indexing happens on first use per year and is cached.
 - You can delete `./index/*` folders to rebuild indexes.
 
