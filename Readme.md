@@ -5,6 +5,12 @@ You can query a range of years and get a coherent, LLM-generated answer based on
 
 ---
 
+📣 **Mentioned on Security Now!**
+
+This project was mentioned in [Security Now episode #1030](https://youtu.be/u0rMgT-rUIQ?si=SSDwmXG1pidcTvuz), aired on **June 17th, 2025**, during the segment ["An LLM describes Steve's (my) evolution on Microsoft security."](https://youtu.be/u0rMgT-rUIQ?si=SSDwmXG1pidcTvuz&t=6570)
+
+---
+
 ## How it works
 
 - Loads and parses text transcripts with chunked context windows
@@ -83,11 +89,54 @@ python sn_cli.py \
 
 ## Notes
 - Ensure transcripts are organized into folders, such as `./transcripts/2015`, `./transcripts/2016`, etc.
-- The indexing happens on first use per year and is cached.
+- The indexing happens on first use per year and is stored in the index directories (`./index/...`).
 - You can delete `./index/*` folders to rebuild indexes.
+
+
+### 6. Run the Streamlit App (Optional)
+
+You can also run a simple web interface to interactively query Security Now transcripts using Streamlit.
+
+```bash
+pip install streamlit
+streamlit run app.py
+```
+
+Once launched, the app will let you:
+
+- Select a year range
+- Enter your LLM provider (OpenAI, Together, Fireworks)
+- Provide your API key
+- Input a query (e.g., “What did Steve say about VPNs?”)
+
 
 ---
 
+
+### 📁 Streamlit Secrets Configuration
+
+To securely provide your API keys when running the app locally or deploying it to Streamlit Cloud, you should use a `.streamlit/secrets.toml` file.
+
+#### Local Use
+Create a file at `.streamlit/secrets.toml` with the following content:
+
+```toml
+OPENAI_API_KEY = "your_openai_api_key"
+TOGETHER_API_KEY = "your_together_api_key"
+FIREWORKS_API_KEY = "your_fireworks_api_key"
+PASSWORD = "your_local_access_password"
+```
+
+> Note: The `PASSWORD` key can be used to unlock environment-defined keys instead of directly exposing them in the UI.
+
+#### Deployment on Streamlit Cloud
+Go to your app settings on [Streamlit Cloud](https://streamlit.io/cloud) and set the same keys in the **Secrets** tab.
+
+### 📦 Prebuilt Index Files
+
+This repository includes prebuilt vector index files under the `./index` directory for selected years. 
+These are included to enable immediate usage of the app, especially when deployed on Streamlit Cloud, 
+where building indexes at runtime can be slow or restricted.
+
 ## License
 GNU Affero General Public License v3.0
-
