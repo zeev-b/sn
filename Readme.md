@@ -4,11 +4,18 @@ This Python program allows you to build a retrieval-augmented generation (RAG) p
 You can query a range of years and get a coherent, LLM-generated answer based on indexed podcast content.
 
 ---
+### 🚀 **Streamlit App Now Live!**
 
-📣 **Mentioned on Security Now!**
+You can now try the Security Now Query Engine in your browser — no setup required:
 
-This project was mentioned in [Security Now episode #1030](https://youtu.be/u0rMgT-rUIQ?si=SSDwmXG1pidcTvuz), aired on **June 17th, 2025**, during the segment ["An LLM describes Steve's (my) evolution on Microsoft security."](https://youtu.be/u0rMgT-rUIQ?si=SSDwmXG1pidcTvuz&t=6570)
+👉 [https://snquery.streamlit.app/](https://snquery.streamlit.app/)
 
+---
+
+### 📣 **Mentioned on Security Now!**
+
+This project was mentioned in [Security Now episode #1030](https://youtu.be/u0rMgT-rUIQ?si=SSDwmXG1pidcTvuz), aired on **June 17th, 2025**, during the segment ["An LLM describes Steve's (my) evolution on Microsoft security."](https://youtu.be/u0rMgT-rUIQ?si=SSDwmXG1pidcTvuz&t=6570)  
+The answer that Steve read in the podcast is available at [examples/Microsoft-security.txt](examples/Microsoft-security.txt)
 ---
 
 ## How it works
@@ -112,7 +119,6 @@ Once launched, the app will let you:
 
 ---
 
-
 ### 📁 Streamlit Secrets Configuration
 
 To securely provide your API keys when running the app locally or deploying it to Streamlit Cloud, you should use a `.streamlit/secrets.toml` file.
@@ -127,7 +133,7 @@ FIREWORKS_API_KEY = "your_fireworks_api_key"
 PASSWORD = "your_local_access_password"
 ```
 
-> Note: The `PASSWORD` key can be used to unlock environment-defined keys instead of directly exposing them in the UI.
+**Note:** The `PASSWORD` key can be used to unlock environment-defined keys instead of inputting them in the UI
 
 #### Deployment on Streamlit Cloud
 Go to your app settings on [Streamlit Cloud](https://streamlit.io/cloud) and set the same keys in the **Secrets** tab.
@@ -137,6 +143,47 @@ Go to your app settings on [Streamlit Cloud](https://streamlit.io/cloud) and set
 This repository includes prebuilt vector index files under the `./index` directory for selected years. 
 These are included to enable immediate usage of the app, especially when deployed on Streamlit Cloud, 
 where building indexes at runtime can be slow or restricted.
+
+
+### 📝 Optional: Log Queries to Google Sheets
+
+You can optionally enable logging of user queries and RAG-generated responses to a Google Sheet using a free Google Apps Script Web App.
+
+1. Create a Google Sheet and rename one sheet to **"Logs"**
+   - Add optional headers: `Timestamp | Query | Response | Provider`
+  
+
+2. Open the sheet, go to **Extensions > Apps Script**, and paste in this script:
+
+    ```javascript
+    function doPost(e) {
+      var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Logs");
+      var data = JSON.parse(e.postData.contents);
+    
+      sheet.appendRow([
+        new Date(),
+        data.query,
+        data.response,
+        data.provider
+      ]);
+    
+      return ContentService.createTextOutput("Success").setMimeType(ContentService.MimeType.TEXT);
+    }
+    ```
+
+3. Deploy it:
+   - Click **Deploy > Manage deployments > New deployment**
+   - Choose **"Web app"**
+   - Set **"Execute as"** to *Me*, and **"Who has access"** to *Anyone*
+   - Copy the Web App URL (e.g. `https://script.google.com/macros/s/.../exec`)  
+  
+
+4. Add the Web App URL to the `.streamlit/secrets.toml` file:
+```toml
+LOG_WEBHOOK_URL = "https://script.google.com/macros/s/.../exec"
+```
+ 
+**Note:** Google may warn you that the app is unverified. Click "Advanced" and proceed if you trust your own script.
 
 ## License
 GNU Affero General Public License v3.0

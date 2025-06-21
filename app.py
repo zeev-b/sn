@@ -13,6 +13,25 @@ PROVIDERS = {"OpenAI": "openai", "together.ai": "together", "Fireworks AI": "fir
 # Load environment variables
 #load_dotenv()
 
+def remote_log_query(user_query: str, response: str, provider: str):
+    payload = {
+        "query": user_query,
+        "response": response,
+        "provider": provider
+    }
+
+    if not os.getenv("LOG_WEBHOOK_URL"):
+        return
+
+    try:
+        res = requests.post(os.getenv("LOG_WEBHOOK_URL"), json=payload, timeout=10)
+        if res.status_code == 200:
+            print("✅ Logged successfully using webhook")
+        else:
+            print("❌ Failed to webhook log:", res.status_code, res.text)
+    except Exception as e:
+        print("❌ Webhook Logging exception:", e)
+
 class StreamlitLogger:
     @staticmethod
     def log(message: str):
@@ -71,7 +90,7 @@ def validate_fireworks_key(api_key: str) -> bool:
         return False
 
 
-def run_query(provider: str, api_key: str):
+def run_query(query: str, provider: str, api_key: str):
     try:
         with st.spinner("Running query across selected years..."):
             # Set LLM provider and API key
@@ -95,6 +114,7 @@ def run_query(provider: str, api_key: str):
             )
 
         st.chat_message("assistant").markdown(str(result))
+        remote_log_query(query, str(result), provider)
 
     except Exception as e:
         st.error(f"❌ An error occurred: {e}")
@@ -102,7 +122,7 @@ def run_query(provider: str, api_key: str):
 
 
 def run():
-    global start_year, end_year, api_key, show_intermediate, debug_mode, summary_prompt, query
+    global start_year, end_year, api_key, show_intermediate, debug_mode, summary_prompt
     # Streamlit UI
     st.title("🔍 Security Now Transcript Query")
     st.markdown("Run RAG-powered queries over Security Now podcast transcripts by year range.")
@@ -119,6 +139,18 @@ def run():
             api_key = user_api_key.strip()
             if not api_key:
                 api_key = "INVALID"
+        # Spacer to push the text down
+
+        st.markdown("  ")
+        st.markdown("  ")
+        st.markdown("---")
+
+        st.markdown(
+            "<div style='font-size: small; color: gray;'>"
+            "🔒 <i>Query, Response, and LLM Provider name are logged</i>"
+            "</div>",
+            unsafe_allow_html=True
+        )
     # show_intermediate = st.checkbox("Show intermediate year results", value=False)
     show_intermediate = False
     # debug_mode = st.checkbox("Enable debug mode", value=False)
@@ -142,7 +174,7 @@ def run():
             st.error("❌ API key appears to be invalid.")
             st.stop()
         else:
-            run_query(PROVIDERS[provider], api_key)
+            run_query(query, PROVIDERS[provider], api_key)
 
 
 run()

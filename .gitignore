@@ -11,4 +11,4 @@ debug/
 
 __pycache__/
 .aider*
-.streamlit/
+.streamlit/secrets.toml
